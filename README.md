@@ -1,6 +1,6 @@
 # Green Bond
 ### Naming Rules
-Country Code: Country of domicile
+Country Code: Country of domicile (two letter code)
 
 Issue year month: Year and month of Issuance
 
@@ -14,4 +14,4 @@ Example:
 
 Indonesian non-green bond issued on July 2018 and matured in July 2021, descriptive data
 
-IND_072018_072021_NG_desc.xlsx
+ID_072018_072021_NG_desc.xlsx
