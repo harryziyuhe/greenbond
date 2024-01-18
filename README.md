@@ -14,4 +14,4 @@ Example:
 
 Indonesian non-green bond issued on July 2018 and matured in July 2021, descriptive data
 
-ID_072018_072021_NG_desc.xlsx
+ID_201807_202107_NG_desc.xlsx
