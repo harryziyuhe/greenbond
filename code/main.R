@@ -150,62 +150,68 @@ ggplot() +
   theme_minimal() +
   theme(text = element_text(family = "serif"))
   
-ggsave("Yield Spread Malaysia.jpeg")
+ggsave("/Users/ziyuhe/Documents/GitHub/greenbond/figures/Yield Spread Malaysia.jpeg")
 
 ggplot() +
   geom_line(aes(x = date, y = spreadMA), color = "blue", size = 1, data = TW20142024bidyMA) +
   geom_line(aes(x = date, y = spreadMA), color = "red", size = 1, data = TW20202025bidyMA) +
-  labs(title = "Yield Spread",
+  labs(title = "Yield Spread between Green and Non-Green Bonds in Taiwan",
        x = "Date",
-       y = "Yield Spread between Green and Non-Green Bonds in Taiwan",
+       y = "Yield Spread",
        color = "Securities") +
   theme_minimal() +
   theme(text = element_text(family = "serif"))
+ggsave("/Users/ziyuhe/Documents/GitHub/greenbond/figures/Yield Spread Taiwan.jpeg")
 
 ggplot() +
   geom_line(aes(x = date, y = spreadMA), color = "blue", size = 1, data = ID20182021bidyMA) +
-  labs(title = "Yield Spread",
+  labs(title = "Yield Spread between Green and Non-Green Bonds in Indonesia",
        x = "Date",
        y = "Yield Spread",
        color = "Securities") +
   theme_minimal() +
   theme(text = element_text(family = "serif"))
-  
+ggsave("/Users/ziyuhe/Documents/GitHub/greenbond/figures/Yield Spread Indonesia.jpeg")
+
 ggplot() +
   geom_line(aes(x = date, y = spreadMA), color = "blue", size = 1, data = CN20232023bidyMA) +
-  labs(title = "Yield Spread",
+  labs(title = "Yield Spread between Green and Non-Green Bonds in China",
        x = "Date",
        y = "Yield Spread",
        color = "Securities") +
   theme_minimal() +
   theme(text = element_text(family = "serif"))
+ggsave("/Users/ziyuhe/Documents/GitHub/greenbond/figures/Yield Spread China(1).jpeg")
 
 ggplot() +
   geom_line(aes(x = date, y = spreadMA), color = "blue", size = 1, data = CN20222025bidyMA) +
-  labs(title = "Yield Spread",
+  labs(title = "Yield Spread between Green and Non-Green Bonds in China",
        x = "Date",
        y = "Yield Spread",
        color = "Securities") +
   theme_minimal() +
   theme(text = element_text(family = "serif"))
+ggsave("/Users/ziyuhe/Documents/GitHub/greenbond/figures/Yield Spread China(2).jpeg")
 
 ggplot() +
   geom_line(aes(x = date, y = spreadMA), color = "blue", size = 1, data = CN20212021bidyMA) +
-  labs(title = "Yield Spread",
+  labs(title = "Yield Spread between Green and Non-Green Bonds in China",
        x = "Date",
        y = "Yield Spread",
        color = "Securities") +
   theme_minimal() +
   theme(text = element_text(family = "serif"))
+ggsave("/Users/ziyuhe/Documents/GitHub/greenbond/figures/Yield Spread China(3).jpeg")
 
 ggplot() +
   geom_line(aes(x = date, y = spreadMA), color = "blue", size = 1, data = HK20202021bidyMA) +
-  labs(title = "Yield Spread",
+  labs(title = "Yield Spread between Green and Non-Green Bonds in Hong Kong",
        x = "Date",
        y = "Yield Spread",
        color = "Securities") +
   theme_minimal() +
   theme(text = element_text(family = "serif"))
+ggsave("/Users/ziyuhe/Documents/GitHub/greenbond/figures/Yield Spread Hong Kong.jpeg")
 
 MY20192032NGbidp <- read_csv("Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20321227_NG_bidp.csv")
 MY20192032Gbidp <- read_csv("Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20321227_G_bidp.csv")
@@ -364,7 +370,146 @@ ggplot() +
   theme_minimal() +
   theme(text = element_text(family = "serif"))
 
+companylist <- list(
+  Indonesia = c('ID_20180706_20210706'),
+  Malaysia = c('MY_20191227_20291227', 'MY_20191227_20301227', 'MY_20191227_20311226', 'MY_20191227_20321227', 'MY_20171229_20321229'),
+  Taiwan = c('TW_20171215_20241215', 'TW_20201115_20251115', 'TW_20221215_20251215', 'TW_20221215_20271215')
+)
 
+colorlst = c('red', 'green', 'blue', 'black', 'darkred')
 
+plot_zspread <- function(country, name, ax = ggplot, color = 'blue') {
+  data_dir <- paste0("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/",
+                    country, "/")
+  gbond_dir <- paste0(data_dir, name, "_G_z.csv")
+  ngbond_dir <- paste0(data_dir, name, "_NG_z.csv")
+  gbond <- read_csv(gbond_dir)
+  ngbond <- read_csv(ngbond_dir)
+  names(gbond) <- c("date", "GZ")
+  names(ngbond) <- c("date", "NGZ")
+  
+  ngbond$date = as.Date(ngbond$date, format = '%d-%b-%Y')
+  gbond$date = as.Date(gbond$date, format = '%d-%b-%Y')
+  bondz <- ngbond |> 
+    inner_join(gbond, by = 'date') |> 
+    mutate(greenium = GZ-NGZ)
 
+  median_greenium <- median(bondz$greenium, na.rm = TRUE)
+  
+  ax <- ax + 
+    geom_histogram(aes(x = greenium), fill = color, data = bondz, alpha = 0.3) +
+    #geom_freqpoly(aes(x = greenium, y = ..count../sum(..count..)*100), color = color, data = bondz, alpha = 0.5) +
+    geom_density(aes(x = greenium), color = color, data = bondz, alpha = 0.5, adjust = 1, size = 1.2) +
+    geom_vline(xintercept = median_greenium, color = color, linetype = "dashed", size = 1, lty = 2) +
+    labs(x = 'Greenium (bps)', y = 'Percentage')
+  return(ax)
+}
 
+plots <- list()
+
+for (country in names(companylist)){
+  companies <- companylist[[country]]
+  zspread <- ggplot()
+  for (i in 1:length(companies)){
+    zspread <- plot_zspread(country, companies[i], zspread, colorlst[i])
+  }
+  plots[[country]] <- zspread + theme_classic() + theme(text = element_text(family = 'serif'))
+}
+
+for (plot in plots) {
+  print(plot)
+}
+
+#Indonesia
+ID20182021NGz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Indonesia/ID_20180706_20210706_NG_z.csv")
+ID20182021Gz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Indonesia/ID_20180706_20210706_G_z.csv")
+names(ID20182021NGz) <- c("date", "NGZ")
+names(ID20182021Gz) <- c("date", "GZ")
+ID20182021NGz$date = as.Date(ID20182021NGz$date, format = '%d-%b-%Y')
+ID20182021Gz$date = as.Date(ID20182021Gz$date, format = '%d-%b-%Y')
+ID20182021z <- ID20182021NGz |> 
+  inner_join(ID20182021Gz, by = 'date') |> 
+  mutate(greenium = GZ-NGZ)
+  
+ggplot(ID20182021z) +
+  geom_line(aes(x = date, y = greenium))
+mean(ID20182021z$greenium)
+sd(ID20182021z$greenium)
+
+plot_zspread('Malaysia', 'MY_20191227_20291227')
+
+#Malaysia
+MY20172032NGz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20171229_20321229_NG_z.csv")
+MY20172032Gz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20171229_20321229_G_z.csv")
+names(MY20172032NGz) <- c("date", "NGZ")
+names(MY20172032Gz) <- c("date", "GZ")
+MY20172032NGz$date = as.Date(MY20172032NGz$date, format = '%d-%b-%y')
+MY20172032Gz$date = as.Date(MY20172032Gz$date, format = '%d-%b-%Y')
+MY20172032z <- MY20172032NGz |> 
+  inner_join(MY20172032Gz, by = 'date') |> 
+  mutate(greenium = GZ-NGZ)
+
+ggplot(MY20172032z) +
+  geom_histogram(aes(x = greenium))
+mean(MY20172032z$greenium)
+sd(MY20172032z$greenium)
+
+MY20192029NGz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20291227_NG_z.csv")
+MY20192029Gz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20291227_G_z.csv")
+names(MY20192029NGz) <- c("date", "NGZ")
+names(MY20192029Gz) <- c("date", "GZ")
+MY20192029NGz$date = as.Date(MY20192029NGz$date, format = '%d-%b-%Y')
+MY20192029Gz$date = as.Date(MY20192029Gz$date, format = '%d-%b-%Y')
+MY20192029z <- MY20192029NGz |> 
+  inner_join(MY20192029Gz, by = 'date') |> 
+  mutate(greenium = GZ-NGZ)
+
+ggplot(MY20192029z) +
+  geom_histogram(aes(x = greenium))
+mean(MY20192029z$greenium)
+sd(MY20192029z$greenium)
+
+MY20192030NGz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20301227_NG_z.csv")
+MY20192030Gz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20301227_G_z.csv")
+names(MY20192030NGz) <- c("date", "NGZ")
+names(MY20192030Gz) <- c("date", "GZ")
+MY20192030NGz$date = as.Date(MY20192030NGz$date, format = '%d-%b-%Y')
+MY20192030Gz$date = as.Date(MY20192030Gz$date, format = '%d-%b-%Y')
+MY20192030z <- MY20192030NGz |> 
+  inner_join(MY20192030Gz, by = 'date') |> 
+  mutate(greenium = GZ-NGZ)
+
+ggplot(MY20192030z) +
+  geom_histogram(aes(x = greenium))
+mean(MY20192030z$greenium)
+sd(MY20192030z$greenium)
+
+MY20192031NGz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20311226_NG_z.csv")
+MY20192031Gz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20311226_G_z.csv")
+names(MY20192031NGz) <- c("date", "NGZ")
+names(MY20192031Gz) <- c("date", "GZ")
+MY20192031NGz$date = as.Date(MY20192031NGz$date, format = '%d-%b-%Y')
+MY20192031Gz$date = as.Date(MY20192031Gz$date, format = '%d-%b-%Y')
+MY20192031z <- MY20192031NGz |> 
+  inner_join(MY20192031Gz, by = 'date') |> 
+  mutate(greenium = GZ-NGZ)
+
+ggplot(MY20192031z) +
+  geom_histogram(aes(x = greenium))
+mean(MY20192031z$greenium)
+sd(MY20192031z$greenium)
+
+MY20192030NGz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20301227_NG_z.csv")
+MY20192030Gz <- read_csv("/Users/ziyuhe/Library/CloudStorage/OneDrive-UCSanDiego/Data/Financial Data/Green Bond/Malaysia/MY_20191227_20301227_G_z.csv")
+names(MY20192030NGz) <- c("date", "NGZ")
+names(MY20192030Gz) <- c("date", "GZ")
+MY20192030NGz$date = as.Date(MY20192030NGz$date, format = '%d-%b-%Y')
+MY20192030Gz$date = as.Date(MY20192030Gz$date, format = '%d-%b-%Y')
+MY20192030z <- MY20192030NGz |> 
+  inner_join(MY20192030Gz, by = 'date') |> 
+  mutate(greenium = GZ-NGZ)
+
+ggplot(MY20192030z) +
+  geom_histogram(aes(x = greenium))
+mean(MY20192030z$greenium)
+sd(MY20192030z$greenium)
